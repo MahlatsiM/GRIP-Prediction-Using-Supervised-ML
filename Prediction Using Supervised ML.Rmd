@@ -1,0 +1,94 @@
+---
+title: "Prediction Using Supervised ML"
+author: "Mahlatsi Mashilo"
+date: "2024-06-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## GRIP Task 1
+Here we will be predicting the percentage of a student on the no.of study hours.
+The aim is to use a supervised machine learning model(Simple Linear Regression) to perform the predictions
+
+# ===========================================================
+## Packages
+```{r packages, echo=TRUE}
+#install.packages('caTools')
+#install.packages("Metrics", dependencies=TRUE)
+library(Metrics)
+library(caTools)
+library(ggplot2)
+theme_set(theme_classic())
+```
+
+# ===========================================================
+## Data Importation
+```{r Data, echo=TRUE}
+data <- read.csv("student_scores.csv")
+head(data)
+```
+
+# ===========================================================
+## Plots
+here are some plots for data understanding
+
+```{r Visuals, echo=TRUE}
+ggplot(data,aes(x = Hours, y = Scores)) + geom_point()
+```
+### Observation
+From the plot we can see that the points show a relatively strong positive relationship with little to no points that we can classify as outliers. We can simply say that the Hours and Scores are directly proportional meaning the more hours you study, the higher the test score will be.
+
+# ===========================================================
+## Data Set Splitting
+Lets split the data into training and testing sets.
+
+```{r Split, echo=FALSE}
+set.seed(123)
+split = sample.split(data$Scores, SplitRatio = 4/5)
+trainingset = subset(data, split == TRUE)
+testset = subset(data, split == FALSE)
+
+trainingset
+testset
+```
+# ===========================================================
+## Model
+Now lets create the Simple Linear Regression model.
+```{r Model, echo=TRUE}
+set.seed(123)
+lm= lm(formula = Scores ~ Hours,
+         data = trainingset)
+#Summary of the model
+summary(lm)
+```
+### Interpretation
+From the output above we can gather the following:
+> the Adjusted R-squared and the Multiple R-squared values are both greater than 0.94 which indicates that the model explains 94% of the overall data, meaning the model fits the data well
+> the p-value of the F-statistic (2.731e-13) is less than 0.05 which indicates that the independent var. (Hours) significantly contributes to the dependent var.(Scores)
+> the RSE of the model is 5.263 meaning the model can be off by an average of 5.263 when predicting
+
+All of this indicates that the model fits the data provided very well. Then we can go ahead and do predictions using the model
+# ===========================================================
+## Regression line
+```{r RegLine, echo=TRUE}
+ggplot(data,aes(x = Hours, y = Scores)) + geom_point() +geom_smooth(method = "lm")
+
+```
+
+# ===========================================================
+## Predictions and evaluation
+```{r Pred, echo=TRUE}
+pred <- predict(lm, testset)
+testset$Pred <- c(pred)
+
+rmse <- rmse(testset$Scores, testset$Pred)
+mae <- mae(testset$Scores, testset$Pred)
+
+testset
+print(paste("RMSE (Metrics):", rmse))
+print(paste("MAE (Metrics):", mae))
+```
+
